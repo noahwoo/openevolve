@@ -199,11 +199,13 @@ class OpenEvolve:
 
             # Generate code modification
             try:
+                logger.info(f"="*100)
+                logger.info(f"Iteration {i+1}: llm generate_with_context:\n##system_message: {prompt['system']}\n##user_prompt: {prompt['user']}")
                 llm_response = await self.llm_ensemble.generate_with_context(
                     system_message=prompt["system"],
                     messages=[{"role": "user", "content": prompt["user"]}],
                 )
-
+                logger.info(f"Iteration {i+1}: llm generation: {llm_response}")
                 # Parse the response
                 if self.config.diff_based_evolution:
                     diff_blocks = extract_diffs(llm_response)

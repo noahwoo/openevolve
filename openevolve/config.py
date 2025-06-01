@@ -234,8 +234,8 @@ def load_config(config_path: Optional[Union[str, Path]] = None) -> Config:
         return Config.from_yaml(config_path)
 
     # Use environment variables if available
-    api_key = os.environ.get("OPENAI_API_KEY")
-    api_base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
+    api_key = os.environ.get("QIANFAN_API_KEY")
+    api_base = os.environ.get("QIANFAN_API_BASE", "https://qianfan.baidubce.com/v2")
 
     config = Config()
     if api_key:
