@@ -133,10 +133,26 @@ def _run_iteration_worker(
         
         # Get island-specific programs for context
         parent_island = parent.metadata.get("island", db_snapshot["current_island"])
-        island_programs = [
-            programs[pid] for pid in db_snapshot["islands"][parent_island]
-            if pid in programs
-        ]
+        
+        # Handle both old and new island formats
+        island_data = db_snapshot["islands"][parent_island]
+        if isinstance(island_data, dict) and "clusters" in island_data:
+            # New format: Island object with clusters
+            island_programs = []
+            clusters = island_data["clusters"]
+            for cluster_data in clusters.values():
+                for pid in cluster_data.get("program_ids", []):
+                    if pid in programs:
+                        island_programs.append(programs[pid])
+        elif isinstance(island_data, list):
+            # Old format: list of program IDs
+            island_programs = [
+                programs[pid] for pid in island_data
+                if pid in programs
+            ]
+        else:
+            # Fallback: empty list
+            island_programs = []
         
         # Sort by metrics for top programs
         from openevolve.utils.metrics_utils import safe_numeric_average
@@ -336,7 +352,8 @@ class ProcessParallelController:
                 for pid, prog in self.database.programs.items()
             },
             "islands": [
-                list(island) for island in self.database.islands
+                island.__dict__() if hasattr(island, '__dict__') else list(island) 
+                for island in self.database.islands
             ],
             "current_island": self.database.current_island,
             "artifacts": {},  # Will be populated selectively
