@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from openevolve.config import Config, load_config
 from openevolve.database import Program, ProgramDatabase
+from openevolve.database_dr import Program, ProgramDatabaseDR
 from openevolve.evaluator import Evaluator
 from openevolve.llm.ensemble import LLMEnsemble
 from openevolve.prompt.sampler import PromptSampler
@@ -149,7 +150,10 @@ class OpenEvolve:
         if self.config.random_seed is not None:
             self.config.database.random_seed = self.config.random_seed
 
-        self.database = ProgramDatabase(self.config.database)
+        if self.config.database_option is None or self.config.database_option == 0:
+            self.database = ProgramDatabase(self.config.database)
+        else :
+            self.database = ProgramDatabaseDR(self.config.database)
 
         self.evaluator = Evaluator(
             self.config.evaluator,

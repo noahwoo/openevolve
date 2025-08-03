@@ -61,6 +61,9 @@ class Program:
     complexity: float = 0.0
     diversity: float = 0.0
 
+    coords: Optional[List[int]] = field(default_factory=list)
+    feature_key: Optional[str] = None
+
     # Metadata
     metadata: Dict[str, Any] = field(default_factory=dict)
 
