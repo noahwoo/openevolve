@@ -168,6 +168,19 @@ class DatabaseConfig:
     archive_size: int = 100
     num_islands: int = 5
 
+    # Cluster sample
+    cluster_sampling_temperature: float = 0.1
+    cluster_sampling_period: float = 300000
+    
+    # Program sample
+    length_sampling_temperature: float = 0.1
+    
+    # Number of examples to include in the context
+    num_samples_per_prompt: int = 4
+    num_previous_programs: int = 3
+    num_top_programs: int = 3
+    num_diverse_programs: int = 2
+    
     # Selection parameters
     elite_selection_ratio: float = 0.1
     exploration_ratio: float = 0.2
@@ -234,6 +247,9 @@ class Config:
     log_dir: Optional[str] = None
     random_seed: Optional[int] = 42
     language: str = None
+    
+    # Database option
+    database_option: int = 1 # openevolve: 0, alphaevolve: 1
 
     # Component configurations
     llm: LLMConfig = field(default_factory=LLMConfig)
