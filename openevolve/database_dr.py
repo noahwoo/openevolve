@@ -330,7 +330,7 @@ class ProgramDatabaseDR:
 
         logger.info(f"Initialized program database with {len(self.programs)} programs")
 
-    def add(self, program: Program, target_island: int = None): 
+    def add(self, program: Program, *, iteration: Optional[int] = None, target_island: int = None): 
         """add program to the target or all island, if target_island is None 
 
         Args:
@@ -339,9 +339,9 @@ class ProgramDatabaseDR:
         """
         if not target_island :
             for island in range(self.config.num_islands) :
-                self._add_to_one_island(program, target_island=island)
+                self._add_to_one_island(program, iteration=iteration, target_island=island)
         else :
-            self._add_to_one_island(program, target_island=target_island)
+            self._add_to_one_island(program, iteration=iteration, target_island=target_island)
         
         if self.should_migrate() :
             self.last_migration_generation = max(self.island_generations)

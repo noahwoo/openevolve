@@ -116,3 +116,120 @@ YAML-based configuration with hierarchical structure:
 - Black for code formatting
 - Artifacts threshold: Small (<10KB) stored in DB, large saved to disk
 - Process workers load database snapshots for true parallelism
+- All PRs run through GitHub Actions with full test suite
+- Version managed via `openevolve/_version.py` with semantic versioning
+
+## Development Workflow
+
+### Setting up Development Environment
+```bash
+# Full setup including dev dependencies
+make all  # Creates venv, installs deps, runs tests
+
+# Alternative manual setup
+python -m venv env
+source env/bin/activate  # On Windows: env\Scripts\activate
+pip install -e ".[dev]"
+```
+
+### Running Individual Tests
+```bash
+# Run specific test file
+python -m unittest tests.test_database
+
+# Run test with verbose output
+python -m unittest tests.test_database -v
+
+# Run specific test method
+python -m unittest tests.test_database.TestProgramDatabase.test_add_program
+
+# Run tests matching pattern
+python -m unittest discover -s tests -p "test_*database*"
+```
+
+### Code Quality Tools
+```bash
+# Format all Python files
+make lint
+
+# Check formatting without changes
+python -m black --check openevolve examples tests scripts
+
+# Type checking with mypy
+python -m mypy openevolve/
+
+# Sort imports
+python -m isort openevolve examples tests scripts
+```
+
+### Debugging and Inspection
+```bash
+# Enable debug logging
+python openevolve-run.py ... --log-level DEBUG
+
+# Visualize specific checkpoint
+python scripts/visualizer.py --path examples/function_minimization/openevolve_output/checkpoints/checkpoint_100/
+
+# Live visualization (watches for new checkpoints)
+python scripts/visualizer.py
+```
+
+## Key File Patterns
+
+### Test Structure
+Tests are organized by feature:
+- `test_database.py` - MAP-Elites and island evolution logic
+- `test_artifacts.py` - Side-channel feedback system
+- `test_checkpoint_resume.py` - Persistence and state recovery
+- `test_llm_ensemble.py` - Multiple model coordination
+- `test_process_parallel.py` - Distributed execution
+
+### Example Structure
+Each example follows this pattern:
+- `initial_program.py` - Starting code with `# EVOLVE-BLOCK-START/END` markers
+- `evaluator.py` - Contains `evaluate(program_path)` function returning metrics dict
+- `config.yaml` - Problem-specific evolution parameters
+- `requirements.txt` - Additional dependencies for the example
+
+### Evolution Markers
+```python
+# EVOLVE-BLOCK-START
+# Your code to evolve goes here
+# This section will be modified by the LLM
+# EVOLVE-BLOCK-END
+```
+
+## Common Development Tasks
+
+### Adding New Features
+1. Add tests in `tests/test_*.py`
+2. Implement feature in `openevolve/`
+3. Update configuration schema in `openevolve/config.py`
+4. Add example usage in `examples/`
+5. Run full test suite: `make test`
+
+### Debugging Failed Evolutions
+1. Check logs in `openevolve_output/logs/`
+2. Enable artifacts in config: `evaluator.enable_artifacts: true`
+3. Use visualizer to inspect evolution tree
+4. Check individual program files in checkpoint directories
+
+### Custom Evaluators
+Evaluators must implement:
+```python
+def evaluate(program_path: str) -> dict:
+    """
+    Evaluate a program and return metrics.
+    
+    Args:
+        program_path: Path to the program file to evaluate
+        
+    Returns:
+        dict: Metrics like {"score": 0.95, "accuracy": 0.87}
+    """
+```
+
+### Environment Variables
+- `OPENAI_API_KEY` - Required for LLM access
+- `ENABLE_ARTIFACTS` - Override artifact collection (true/false)
+- `CUDA_VISIBLE_DEVICES` - Control GPU usage for local models
