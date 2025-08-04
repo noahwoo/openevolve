@@ -224,7 +224,7 @@ class Island:
 
         indices = np.argsort(scores)
         sorted_program_ids = [program_ids[i] for i in indices]
-        logger.debug(f"Island-{self.id} sampled program ids [{','.join(sorted_program_ids)}]")
+        logger.debug(f"Island-{self.id} sampled program ids [{','.join(sorted_program_ids)}] from clusters [{','.join(chosen_feature_keys)}]")
         return sorted_program_ids
 
 class ProgramDatabaseDR:
@@ -373,6 +373,9 @@ class ProgramDatabaseDR:
         self.programs[program.id] = program
         self._enforce_population_limit()
 
+        # calculate coords and feature_key
+        program.feature_key = self._feature_coords_to_key(
+            self._calculate_feature_coords(program=program))
         # add program to target Island
         self.islands[target_island].register_program(program, self.config)
         score = program.metrics['combined_score']
@@ -653,7 +656,6 @@ class ProgramDatabaseDR:
                         # Program missing, track it
                         missing_programs.append((island_idx, program_id))
                         cluster.discard_program(self.programs[program_id])
-                        missing_programs.append(program_id)
                     else:
                         restored_programs += 1
         # Clean up archive - remove missing programs
@@ -710,7 +712,7 @@ class ProgramDatabaseDR:
         # Distribute programs round-robin across islands
         for i, program_id in enumerate(program_ids):
             island_idx = i % len(self.islands)
-            self.islands[island_idx].register_program(self.programs[program_id])
+            self.islands[island_idx].register_program(self.programs[program_id], self.config)
             self.programs[program_id].metadata["island"] = island_idx
 
         logger.info(f"Distributed {len(program_ids)} programs across {len(self.islands)} islands")
@@ -745,9 +747,6 @@ class ProgramDatabaseDR:
 
         with open(program_path, "w") as f:
             json.dump(program_dict, f)
-    
-    def calculate_feature_coords(self, program: Program) -> List[int] :
-        return self._calculate_feature_coords(program)
     
     def _calculate_feature_coords(self, program: Program) -> List[int]:
         """
@@ -865,9 +864,6 @@ class ProgramDatabaseDR:
         bin_idx = max(0, min(num_bins - 1, bin_idx))
 
         return bin_idx
-
-    def feature_coords_to_key(self, coords: List[int]) -> str:
-        return self._feature_coords_to_key(coords=coords)
     
     def _feature_coords_to_key(self, coords: List[int]) -> str:
         """
